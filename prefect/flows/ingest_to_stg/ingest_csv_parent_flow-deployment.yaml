@@ -1,0 +1,55 @@
+###
+### A complete description of a Prefect Deployment for flow 'ingest-csv-parent-flow'
+###
+name: Insert Staging with Params
+description: null
+version: f91152f98d4cd7d244cd2602bdb8143c
+# The work queue that will handle this deployment's runs
+work_queue_name: default
+work_pool_name: default-agent-pool
+tags: []
+parameters:
+  dataset_filename: geolocation_dataset
+  table_name: stg_geo
+schedule: null
+is_schedule_active: true
+infra_overrides: {}
+
+###
+### DO NOT EDIT BELOW THIS LINE
+###
+flow_name: ingest-csv-parent-flow
+manifest_path: null
+infrastructure:
+  type: process
+  env: {}
+  labels: {}
+  name: null
+  command: null
+  stream_output: true
+  working_dir: null
+  _block_document_id: 26150bb5-607c-44a5-9cdd-c1ace42c891b
+  _block_document_name: anonymous-e39bc2f6-3dd0-458d-a97c-cd90aed39cda
+  _is_anonymous: true
+  block_type_slug: process
+  _block_type_slug: process
+storage: null
+path: /home/ubuntu/work/python3/perqara/prefect/flows/ingest_to_stg
+entrypoint: ingest_to_stg.py:ingest_csv_parent_flow
+parameter_openapi_schema:
+  title: Parameters
+  type: object
+  properties:
+    dataset_filename:
+      title: dataset_filename
+      position: 0
+      type: string
+    table_name:
+      title: table_name
+      position: 1
+      type: string
+  required:
+  - dataset_filename
+  - table_name
+  definitions: null
+timestamp: '2023-04-11T20:34:04.218197+00:00'

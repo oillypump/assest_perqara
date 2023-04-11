@@ -1,1 +1,4 @@
 venv/
+.vscode
+pg_db_container/data_pgadmin
+pg_db_container/data_postgresql
