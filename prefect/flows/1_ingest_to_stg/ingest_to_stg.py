@@ -16,9 +16,9 @@ def fetching_data(dataset_filename: str) -> pd.DataFrame:
 @task(name="insert data to db stg", log_prints=True)
 def insert_data(table_name, df):
     print(df)
-    database_block = SqlAlchemyConnector.load("perqara-stg")
+    database_block = SqlAlchemyConnector.load("perqara-database")
     with database_block.get_connection(begin=False) as engine:
-        df.to_sql(table_name, con=engine, if_exists="replace", index=False)
+        df.to_sql(table_name, schema="stg" ,con=engine, if_exists="replace", index=False)
 
 
 @flow(name="Ingest CSV to STG", log_prints=True)

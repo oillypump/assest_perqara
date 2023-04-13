@@ -1,11 +1,6 @@
-## to do
+## About
 
-- [ ] create ingest python 1 by 1 with params
-- [ ] cleaning data in each table do :
-    * a. by unique id drop duplicate 
-    * b. change type table text to varchar(utk yang cuma 2 huruf atau kurang dari 2 huruf)
-    * c. 
-
+bla bla
 
 ## steps.
 
@@ -34,6 +29,17 @@ $ docker compose up -d
 $ sudo chown 5050:5050 data_pgadmin
 $ sudo chmod a+rwx data_postgresql
 ```
+- create schemas
+```
+CREATE SCHEMA stg
+    AUTHORIZATION root;
+
+CREATE SCHEMA cln
+    AUTHORIZATION root;
+
+CREATE SCHEMA dm
+    AUTHORIZATION root;
+```
 
 - run server prefect
 
@@ -44,23 +50,24 @@ $ prefect server start
 ```
 $ prefect agent start -p 'default-agent-pool'
 ```
-- create db cln for cleaned and transformed data
-- create db dm for data mart
 
-- execute
 
 # create block connection to postgresql
 
 - go to UI localhost:4200 > click + buttons
 - add sqlalchemy connector
-    * block name = perqara-stg
+    * block name = perqara-database
     * driver = SyncDriver > postgresl+psycopg2
-    * database = perqara_stg
+    * database = perqara_database
     * username = root
     * password = root
     * host = localhost
     * port = 5432
 - save
+
+- create schema stg from pg_admin UI
+- create schema cln pg_admin UI
+- create schema dm pg_admin UI
 
 # ingest raw data to DB
 - deploy ingestion [code](/prefect/flows/ingest_to_stg/ingest_to_stg.py) 
@@ -86,3 +93,27 @@ $ prefect deployment apply ingest_csv_parent_flow-deployment.yaml
 ## [requirements](requirements.txt)
 
 
+select
+	a.order_id,
+	count(a.order_id) as order_quantity,
+	sum(b.price) as price,
+	c.order_status_id,
+	d.date_id as purchase_date,
+	e.date_id 
+-- 	*	
+from cln.t_orders a
+join cln.t_order_items b
+on a.order_id = b.order_id
+join dm.dim_status_order c
+on a.order_status = c.order_status
+join dm.dim_date d
+on a.order_purchase_timestamp::date = d.date
+join dm.dim_date e
+on a.order_approved_at::date = d.date
+
+group by 
+	a.order_id,
+	c.order_status_id,
+	d.date_id,
+	e.date_id
+order by a.order_id desc
