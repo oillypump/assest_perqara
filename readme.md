@@ -1,8 +1,18 @@
 ## About
 
-bla bla
+Pada [kumpulan data](/data/) yang diberikan, Saya coba create datamart sederhana untuk dapat menyajikan analisis dari nilai order(price) dan quantity order dari hari ke hari.
 
-## steps.
+![stars schema](pic/stars_sch.png)
+
+## Technology yang digunakan
+- docker as containerization
+- postgresql & pgadmin as database
+- python as programming language
+- prefect as data orchestrator
+
+## steps
+
+- clone this repo
 
 - create virt env
 ```
@@ -21,6 +31,8 @@ $ pip install -r requirements.txt
 
 - running up postgresql and pgadmin [container](pg_db_container/docker-compose.yml)
 ```
+$ cd pg_db_container
+
 $ mkdir data_pgadmin
 $ mkdir data_postgresql
 
@@ -52,7 +64,7 @@ $ prefect agent start -p 'default-agent-pool'
 ```
 
 
-# create block connection to postgresql
+# create prefect block connection to postgresql
 
 - go to UI localhost:4200 > click + buttons
 - add sqlalchemy connector
@@ -65,10 +77,6 @@ $ prefect agent start -p 'default-agent-pool'
     * port = 5432
 - save
 
-- create schema stg from pg_admin UI
-- create schema cln pg_admin UI
-- create schema dm pg_admin UI
-
 # ingest raw data to DB
 - deploy ingestion [code](/prefect/flows/ingest_to_stg/ingest_to_stg.py) 
 ```
@@ -79,41 +87,56 @@ $ prefect deployment build ingest_to_stg.py:ingest_csv_parent_flow -n "Insert St
 $ prefect deployment apply ingest_csv_parent_flow-deployment.yaml
 ```
 - go to UI localhost:4200 > Deployment > click three dots in right corner > Quick run   
-- input parameters which suitable as your dataset_filename and table_name csv 
-    ex : dataset_filename : geolocation_dataset, table_name = stg_geolocation
+- input parameters which suitable as on dataset_filename and table_name csv 
+    * parameters : 
+        1. dataset_filename : customers_dataset, 
+        table_name : stg_customers
+        2. dataset_filename : geolocation_dataset, 
+        table_name : stg_geolocation
+        3. dataset_filename : order_items_dataset, 
+        table_name : stg_order_items
+        4. dataset_filename : order_payments_dataset, 
+        table_name : stg_order_payments
+        5. dataset_filename : order_reviews_dataset, 
+        table_name : stg_order_reviews
+        6. dataset_filename : orders_dataset, 
+        table_name : stg_orders
+        7. dataset_filename : product_category_name_translation_dataset, 
+        table_name : stg_product_cat_name_translation
+        8. dataset_filename : products_dataset, 
+        table_name : stg_products
+        9. dataset_filename : sellers_dataset, 
+        table_name : stg_sellers
 - Run
 - Repeat on each dataset
 
-**Note** : make sure path variable in this [code](/prefect/flows/ingest_to_stg/ingest_to_stg.py)  match in your dir.
+**Note** : make sure dataset path variable in this [code](/prefect/flows/ingest_to_stg/ingest_to_stg.py) match in your current dir.
 
 # clean/transform data
 
+- cd to prefect/flows/2_transform
+```
+$ cd prefect/flows/2_transform/
+```
+- execute each python (.py) scripts for transform data
+
+example syntax :
+``` 
+python cln_stg_customers.py 
+```
+
 # create data mart
 
+- cd to prefect/flows/3_dm
+```
+$ cd prefect/flows/3_dm
+```
+- execute each python script in sequence
+
+example syntax :
+``` 
+python 1_dim_date.py 
+```
+
+
 ## [requirements](requirements.txt)
-
-
-select
-	a.order_id,
-	count(a.order_id) as order_quantity,
-	sum(b.price) as price,
-	c.order_status_id,
-	d.date_id as purchase_date,
-	e.date_id 
--- 	*	
-from cln.t_orders a
-join cln.t_order_items b
-on a.order_id = b.order_id
-join dm.dim_status_order c
-on a.order_status = c.order_status
-join dm.dim_date d
-on a.order_purchase_timestamp::date = d.date
-join dm.dim_date e
-on a.order_approved_at::date = d.date
-
-group by 
-	a.order_id,
-	c.order_status_id,
-	d.date_id,
-	e.date_id
-order by a.order_id desc

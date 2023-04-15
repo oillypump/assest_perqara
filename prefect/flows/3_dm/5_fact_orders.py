@@ -9,9 +9,9 @@ def load_data() -> pd.DataFrame:
     select
 	a.order_id,
 	count(a.order_id) as order_quantity,
-	sum(b.price) as price,
+	round(sum(b.price::numeric),2) as price,
 	c.order_status_id,
-	d.date_id as purchase_date,
+	d.date_id as purchase_date_id,
 	f.product_id,
 	e.customer_id
 
